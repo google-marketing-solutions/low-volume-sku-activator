@@ -1,0 +1,8 @@
+apache-beam
+dateinfer
+google-cloud
+google-cloud-dataflow
+google-cloud-bigquery
+gcsfs
+six==1.10
+google-gax
