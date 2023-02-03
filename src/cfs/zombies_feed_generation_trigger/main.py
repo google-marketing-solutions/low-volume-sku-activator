@@ -55,7 +55,8 @@ def trigger_job(event, context):
 
     run_date = _get_date(msg)
 
-    zombies_bucket = _get_zombies_bucket(table_parts[1], table_parts[2], ACCOUNTS_CONFIG)
+    zombies_bucket = _get_zombies_bucket(table_parts[1], table_parts[2],
+                                         ACCOUNTS_CONFIG)
 
     body = {
         "jobName": "zb-" + "-".join(table_parts[1:3]),
@@ -85,7 +86,8 @@ def _get_zombies_bucket(merchant_acc, gads_acc, accounts_config):
   Args:
     merchant_acc: string representing the merchant account id
     gads_acc: string representing the gads account id
-    accounts_config: javascript object with the configuration per each merchant_acc & gads_acc pairs
+    accounts_config: javascript object with the configuration per each
+    merchant_acc & gads_acc pairs
 
   Returns:
     A string representing gcs url
@@ -111,31 +113,3 @@ def _get_date(msg):
   runtime = msg['runTime']
   date = datetime_helpers.from_rfc3339(runtime)
   return date.strftime('%Y%m%d')
-
-if __name__ == '__main__':
-
-  msg_data = {"runTime": "2020-06-02T11:29:00Z",
-  "dataSourceId": "scheduled_query",
-  "destinationDatasetId": "LTV_Project",
-  "emailPreferences": {
-  
-  },
-  "endTime": "2022-09-09T14:57:19.026135Z",
-  "errorStatus": {
-  
-  },
-  "name": "projects/xxxxx",
-  "notificationPubsubTopic": "a_topic",
-  "params": {
-    "destination_table_name_template": "ZombieProducts_7007487_8911086332_{run_time|\"%Y%m%d\"}"
-    }
-}
-  msg_data = base64.b64encode(bytes(json.dumps(msg_data).encode('utf-8')))
-  trigger_job(
-      event={
-          'data': msg_data,
-          'attributes': {
-              'forwarded': 'true'
-          }
-      },
-      context=None)
