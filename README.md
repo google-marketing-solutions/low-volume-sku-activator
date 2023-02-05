@@ -31,7 +31,7 @@ GROUP BY 1,_TABLE_SUFFIX
 ```
 ## How to deploy
 - Clone this repository onto your local machine 
-by running ```git clone https://github.com/google/zombies-on-steroids.```
+by running ```git clone https://github.com/google/zombies-on-steroids```
 - Navigate to the project folder by running ```cd zombies_on_steroids/```
 - Make sure you edit the ```variables.tf``` file with all the relevant values.
 - Run ```terraform init``` to initialize the working directory.
