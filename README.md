@@ -42,22 +42,16 @@ execute.
 ## Generated Artefacts
 ### BigQuery Scheduled Query:
 
-- One BigQuery scheduled query will be created for each pair with the following
-naming convention: Zombie_<MC_ACCOUNT_ID>_<GADS_ACCOUNT_ID>
-- The schedule is set by the config variable “zombies_schedule”
-- Pubsusb topic specified by the variable “zombies_pubsub_topic” to notify 
-scheduled query completion
+- One BigQuery scheduled query will be created for each pair with the following naming convention: `Zombie_<MC_ACCOUNT_ID>_<GADS_ACCOUNT_ID>`
+- The schedule is set by the config variable `zombies_schedule`
+- The PubSub topic is specified by the variable `zombies_pubsub_topic` to notify scheduled query completion
 
-If the config ```variable generate_feed_files``` is set to ```true```, the 
-following artefacts will be generated:
+If the config ```variable generate_feed_files``` is set to ```true```, the following artefacts will be generated:
 
-- __Cloud Function:__ ```zombies_feed_generation_trigger```. Triggered by a 
-PubSub message on the topic ```zombies_pubsub_topic```. The message is sent 
-upon scheduled query completion.
-- __Dataflow:__ a job with the following naming convention will be executed 
+- __Cloud Function:__ ```zombies_feed_generation_trigger```. Triggered by a PubSub message on the topic ```zombies_pubsub_topic```. The message is sent upon scheduled query completion.
+- __Dataflow:__ a job with the following naming convention will be executed: 
 ```zb-<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>```
-- __CSV files:__ will be stored in the corresponding GCS location indicated by 
-- the ```accounts_table``` variable and with the following naming convention
+- __CSV files:__ will be stored in the corresponding GCS location indicated by the ```accounts_table``` variable and with the following naming convention
 ```zombies_feed_<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>.csv```
 
 ## Author
