@@ -1,8 +1,0 @@
-apache-beam==2.2.0
-dateinfer==0.2.0
-google-cloud==0.34.0
-google-cloud-dataflow==2.2.0
-google-cloud-bigquery==0.25.0
-gcsfs==2022.11.0
-six==1.10
-google-gax==0.15.16

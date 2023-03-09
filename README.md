@@ -1,4 +1,5 @@
 # Zombies on Steroïds
+
 Zombies on Steroids is a solution that aims to pull out the least viewed
 products on Google Shopping in order to drive them in a separate Google Ads
 campaign.
@@ -11,54 +12,176 @@ This solution is perfect for retailers with millions of products in shopping,
 as it will help to identify and reactivate products that are not getting the
 attention they deserve.
 
+## Important Note
+
+Majority of the installation script is based in Terraform and will try to create all the artefacts specified in the configuration: GCS buckets, Cloud Functions, BigQuery Datasets…if they exist you may want to import the status into Terraform prior execution.
+
+Regarding Merchant data transfers, if this is the first time a Merchant transfer is created, it might fail during the first 24-72 hours, which is the time it takes for Merchant reporting generation process to be set up
+
+If deploying the GAds and Merchant Bigquery Data Transfers, the Cloud user executing the script must have access granted to GAds and Merchant Center accounts
+
+Since GAds and Merchant Data Transfers cannot be created using Terraform due to the authorization code, the resource status is not currently saved. Bear in mind that multiple runs of the script may end up duplicating the Data Transfers.
+
 ## Prerequisite
-- A Google Cloud Platform user with Owner role).
-- Terraform version >=1.3.7
-- Python version >=3.8.1
-- A Big Query Data Transfer of Google Merchant Center and Google Ads (you can
-use [Markup](https://github.com/google/shopping-markup) to set this up)
-- The pairs of Merchants IDs and Google Ads IDs you want this project to run 
-on.
+
+Google cloud user with privileges over all the APIs listed in the config (ideally Owner role), so it’s possible to grant some privileges to the Service Account automatically.
+
+- Latest version of Terraform installed
+- Python version >= 3.8.1 installed
+- Python Virtualenv installed
+- List of Merchant - GAds account pairs ready (which GAds account is linked to which Merchant account)
+
+If you already have the Merchant and GAds data into BigQuery tables by using BigQuery Data Transfers, you can extract the account pairs with the following query:
+
 ```sql
 # To get the pairs, you can run the following query :
 
 SELECT
  DISTINCT(MerchantId) AS merchant_id_table_suffix,
  _TABLE_SUFFIX AS gads_id_table_suffix
-FROM `<project>.<merchant_dataset>.p_ShoppingProductStats_*`
+FROM `<project>.<merchant_and_gads_dataset>.p_ShoppingProductStats_*`
 WHERE merchantId != 0
 GROUP BY 1,_TABLE_SUFFIX
 ```
+
+Otherwise you will need to compile it manually.
+
+Roles that will be automatically  granted to the service account during the installation process:
+
+"roles/iam.serviceAccountShortTermTokenMinter"
+"roles/storage.objectAdmin"
+"roles/bigquery.admin"
+
 ## How to deploy
-- Clone this repository onto your local machine 
+
+- Clone this repository onto your local machine
 by running ```git clone http://github.com/google/zombies-on-steroids.```
 - Navigate to the project folder ```cd zombies_on_steroids/```
 - Make sure you edit the ```variables.tf``` file with all the relevant values.
-- Run ```terraform init``` to initialize the working directory.
-- Then run ```terraform plan``` to view the execution plan that Terraform will
-execute.
-- Finally, run ```terraform apply``` to execute the action from the plan
+- Set the environment variable GOOGLE_APPLICATION_CREDENTIALS (either to service account key file or your user key file after gcloud auth application-default login)
+- Open a shell, go to the root directory of the downloaded code, execute “chmod 755 install.sh”
+- Now execute “./install.sh”
+- Type “yes” and hit return every time the system asks for confirmation (2 times maximum)
 
-## Generated Artefacts
-### BigQuery Scheduled Query:
+## Generated Cloud Artefacts
 
-- One BigQuery scheduled query will be created for each pair with the following
-naming convention: Zombie_<MC_ACCOUNT_ID>_<GADS_ACCOUNT_ID>
-- The schedule is set by the config variable “zombies_schedule”
-- Pubsusb topic specified by the variable “zombies_pubsub_topic” to notify 
-scheduled query completion
+- BigQuery Scheduled Query:
 
-If the config ```variable generate_feed_files``` is set to ```true```, the 
-following artefacts will be generated:
+    One BigQuery scheduled query will be created for each pair with the following naming convention: Zombie_<MC_ACCOUNT_ID>_<GADS_ACCOUNT_ID>
+    The schedule is set by the config variable “zombies_schedule”
+    Pubsub topic specified by the variable “zombies_pubsub_topic” to notify scheduled query completion
 
-- __Cloud Function:__ ```zombies_feed_generation_trigger```. Triggered by a 
-PubSub message on the topic ```zombies_pubsub_topic```. The message is sent 
-upon scheduled query completion.
-- __Dataflow:__ a job with the following naming convention will be executed 
-```zb-<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>```
-- __CSV files:__ will be stored in the corresponding GCS location indicated by 
-- the ```accounts_table``` variable and with the following naming convention
-```zombies_feed_<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>.csv```
+- If the config variable create_merchant_and_gads_transfers is set to “true”, the following artefacts will be generated:
+
+    BigQuery Data Transfer for each GAds account with the name GAds_Transfer_{gads_id}
+    BigQuery Data Transfer for each Merchant account Merchant_Transfer_{mc_id}
+
+    IMPORTANT NOTE: if this is the first time the Merchant transfer is created, it might fail during the first 24-72 hours, which is the time it takes for Merchant reporting generation process to be set up
+
+- If the config variable generate_feed_files is set to “true”, the following artefacts will be generated:
+
+    Cloud Function: zombies_feed_generation. Triggered by a pubsub message  on the topic “zombies_pubsub_topic”. The message is sent upon scheduled query completion.
+
+## Ouput
+
+### Ouput Table
+
+For every (mcc, gads) account pair, one sharded (YYYYMMDD) table will be generated with the following naming convention:
+{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*
+
+The table fields are described below:
+
+|Fied Name|Type|Nullable?|Description|
+|:----|:----|:----|:----|
+|offer_id|STRING|NULLABLE|The offer_id analysed|
+|item_group_id|STRING|NULLABLE|The item_group_id of the offer_id|
+|country|STRING|NULLABLE|The country|
+|feed_label|STRING|NULLABLE|The label for building the feed (country)|
+|offer_id_clicks|FLOAT|NULLABLE|The sum of all the clicks of the offer_id|
+|offer_id_impressions|FLOAT|NULLABLE|The sum of all the impressions of the offer_id|
+|group_clicks|FLOAT|NULLABLE|The sum of all the clicks in the item_group_idoup|
+|group_impressions|FLOAT|NULLABLE|The sum of all the impressions in the item_group_id|
+|avg_group_clicks|FLOAT|NULLABLE|The avg_clicks of all the offer_ids in the same item_group_id|
+|avg_group_impressions|FLOAT|NULLABLE|The avg_impressions of all the offer_ids in the same item_group_id|
+|clicks_threshold|FLOAT|NULLABLE|Distributing the clicks per country in {zombies_deciles} deciles, this indicates the value of {zombies_clicks_decil}|
+|impressions_threshold|FLOAT|NULLABLE|Distributing the clicks per country in {zombies_deciles} deciles, this indicates the value of {zombies_impressions_decil}|
+
+### Supplemental Feeds
+
+If the config variable generate_feed_files is set to “true”, CSV files will be stored in the corresponding GCS location indicated by the “accounts_table” variable. The CSV naming convention is as follows:
+
+zombies_feed_<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>.csv
+
+The fields in the CSV files are:
+
+offer_id, item_group_id, custom_label_{zombies_feed_label_index}
+
+## How to activate
+
+### Specific Shopping Campaigns For Zombie Products
+
+The idea is to label the zombies so they are filtered into an specific Shopping Zombies campaign with lower ROAS, to give those products a second chance (or circumvent cold start effect)
+
+- Prepare Merchant
+
+    Make sure the custom_label_{zombies_feed_label_index} attribute is blank for all products in each feed
+
+    Create the supplemental feeds in Merchant Center and link the feed file GCS URL. It should be the same as the one in the configuration variable {accounts_table}
+
+- Prepare Google Ads:
+
+    Create Zombies Shopping campaign, and select only those products with custom_label_{zombies_feed_label_index} = ‘zombie’
+
+- Double check Zombies solution:
+
+    Make sure the config variable {generate_feed_files} is set to “true”. If it wasn’t you will need to change the value to “true” and run “terraform apply -parallelism=1”
+
+Either run the zombies scheduled query manually or wait for an execution cycle and check the files are generated correctly in the right gcs locations.
+
+### Product Insights
+
+Here are several use cases to activate, for example:
+
+- Products without clicks but with impressions, might lead to either a pricing problem or a poor ad position (low bidding). The query to extract those products:
+
+```sql
+SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
+        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        WHERE
+          _TABLE_SUFFIX = {run_date}
+          AND clicks = 0 AND impressions > 0
+```
+
+- Products performing worse than group average, to take procurement decisions:
+
+```sql
+SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
+        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        WHERE
+          _TABLE_SUFFIX = {run_date}
+          AND clicks < avg_group_clicks
+```
+
+- Super Zombie products, no impressions:
+
+```sql
+SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
+        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        WHERE
+          _TABLE_SUFFIX = {run_date}
+          AND impressions = 0
+```
+
+- Products from a group which, as a group, perform under the country threshold:
+
+```sql
+SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
+        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        WHERE
+          _TABLE_SUFFIX = {run_date}
+          AND group_impressions < impressions_threshold
+```
 
 ## Author
+
 - Jaime Martinez (jaimemm@)

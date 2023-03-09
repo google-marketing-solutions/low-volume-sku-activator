@@ -15,9 +15,23 @@
 provider "google" {
   project = var.gcp_project
   region  = var.gcp_region
+  credentials = var.credentials_path
+}
+
+
+provider "google" {
+  project = var.gcp_merchant_and_gads_dataset_project
+  region  = var.gcp_region
+  credentials = var.credentials_path
+  alias = "merchant_gads"
 }
 
 data "google_project" "project" {
+  provider = google
+}
+
+data "google_project" "project_merchant_gads" {
+  provider = google.merchant_gads
 }
 
 
@@ -27,9 +41,8 @@ resource "google_service_account" "service_account" {
 }
 
 resource "null_resource" "generate_feed_files" {
-
   count = var.generate_feed_files ? 1 : 0
-
+  depends_on    = [google_service_account.service_account]
 }
 
 resource "google_project_service" "enable_cloudbuild" {
@@ -42,6 +55,7 @@ resource "google_project_service" "enable_cloudbuild" {
   }
 
   disable_dependent_services = true
+  depends_on    = [google_service_account.service_account]
 }
 
 resource "google_project_service" "enable_bqdt" {
@@ -54,6 +68,33 @@ resource "google_project_service" "enable_bqdt" {
   }
 
   disable_dependent_services = true
+  depends_on    = [google_service_account.service_account]
+}
+
+resource "google_project_service" "enable_gadsapi" {
+  project = var.gcp_project
+  service = "googleads.googleapis.com"
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+  }
+
+  disable_dependent_services = true
+  depends_on    = [google_service_account.service_account]
+}
+
+resource "google_project_service" "enable_cloudfunctions" {
+  project = var.gcp_project
+  service = "cloudfunctions.googleapis.com"
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+  }
+
+  disable_dependent_services = true
+  depends_on    = [google_service_account.service_account]  
 }
 
 resource "google_project_service" "enable_pubsub" {
@@ -66,22 +107,7 @@ resource "google_project_service" "enable_pubsub" {
   }
 
   disable_dependent_services = true
-}
-
-
-resource "google_project_service" "enable_dataflow" {
-  count = var.generate_feed_files ? 1 : 0
-  project = var.gcp_project
-  service = "dataflow.googleapis.com"
-
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
-
-  disable_dependent_services = true
-  depends_on    = [google_service_account.service_account,
-                   ] 
+  depends_on    = [google_service_account.service_account]
 }
 
 resource "google_project_service" "enable_cloudscheduler" {
@@ -94,36 +120,7 @@ resource "google_project_service" "enable_cloudscheduler" {
   }
 
   disable_dependent_services = true
-}
-
-resource "google_project_service" "enable_datapipelines" {
-  count = var.generate_feed_files ? 1 : 0
-  project = var.gcp_project
-  service = "datapipelines.googleapis.com"
-
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
-
-  disable_dependent_services = true
-  depends_on    = [google_service_account.service_account,
-                   ] 
-}
-
-resource "google_project_service" "enable_cloudfunctions" {
-  count = var.generate_feed_files ? 1 : 0
-  project = var.gcp_project
-  service = "cloudfunctions.googleapis.com"
-
-  timeouts {
-    create = "30m"
-    update = "40m"
-  }
-
-  disable_dependent_services = true
-  depends_on    = [google_service_account.service_account,
-                   ]  
+  depends_on    = [google_service_account.service_account]
 }
 
 resource "google_project_iam_member" "permissions_token" {
@@ -133,15 +130,6 @@ resource "google_project_iam_member" "permissions_token" {
   depends_on    = [google_service_account.service_account]
   
 }
-
-resource "google_project_iam_member" "permissions_dataflow" {
-  project = data.google_project.project.project_id
-  role   = "roles/dataflow.worker"
-  member = "serviceAccount:${google_service_account.service_account.email}"
-  depends_on    = [google_service_account.service_account,
-                   null_resource.generate_feed_files[0]]  
-}
-
 
 resource "google_project_iam_member" "permissions_gcs" {
   project = data.google_project.project.project_id
@@ -157,8 +145,6 @@ resource "google_project_iam_member" "permissions_bq_admin" {
   member = "serviceAccount:${google_service_account.service_account.email}"
   depends_on    = [google_service_account.service_account]
 }
-
-
 
 resource "google_bigquery_dataset" "zombies_dataset" {
   project = data.google_project.project.project_id

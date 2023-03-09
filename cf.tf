@@ -17,21 +17,9 @@
 data "archive_file" "source" {
     count = var.generate_feed_files ? 1 : 0
     type        = "zip"
-    source_dir  = "src/cfs/zombies_feed_generation_trigger"
-    output_path = "/tmp/zombies_feed_generation_trigger.zip"
-    depends_on   = [
-        ]
-}
-
-resource "google_storage_bucket" "zombies_bucket" {
-  count = var.generate_feed_files ? 1 : 0
-  project = data.google_project.project.project_id
-  name          = var.zombies_bucket_name
-  location      = var.zombies_bucket_location
-  force_destroy = true
-  uniform_bucket_level_access = true
-  depends_on    = [google_service_account.service_account,
-                  ]  
+    source_dir  = "src/cfs/zombies_feed_generation"
+    output_path = "/tmp/zombies_feed_generation.zip"
+    depends_on   = []
 }
 
 # Add source code zip to the Cloud Function's bucket
@@ -47,32 +35,41 @@ resource "google_storage_bucket_object" "zip" {
 
     # Dependencies are automatically inferred so these lines can be deleted
     depends_on   = [
-        google_storage_bucket.zombies_bucket,  # declared in `storage.tf`      
+        google_storage_bucket.zombies_bucket[0],  # declared in `storage.tf`      
     ]
 }
+
+resource "google_storage_bucket" "zombies_bucket" {
+  count = var.generate_feed_files ? 1 : 0
+  project = data.google_project.project.project_id
+  name          = var.zombies_bucket_name
+  location      = var.zombies_bucket_location
+  force_destroy = false
+  uniform_bucket_level_access = true
+  depends_on    = [google_service_account.service_account,
+                   google_project_service.enable_cloudfunctions]  
+}
+
 
 # Create the Cloud function triggered by a `Finalize` event on the bucket
 resource "google_cloudfunctions_function" "function" {
     count = var.generate_feed_files ? 1 : 0
     depends_on            = [      
-        google_storage_bucket_object.zip,
+        google_storage_bucket_object.zip[0],
+        google_service_account.service_account,
+        google_project_service.enable_cloudfunctions,
         google_project_service.enable_cloudbuild,
-        google_storage_bucket.zombies_bucket,
-        null_resource.deploy_dataflow_template
+        google_storage_bucket.zombies_bucket[0]        
     ]
-    name                  = "zombies_feed_generation_trigger"
+    name                  = "zombies_feed_generation"
     runtime               = "python38"
 
     environment_variables = {
         GCP_PROJECT = var.gcp_project,
         ACCOUNTS_CONFIG = jsonencode(var.accounts_table),
         ZOMBIES_DATASET_NAME = var.zombies_dataset_name,
-        DATAFLOW_REGION = var.gcp_region,
-        DATAFLOW_BUCKET = var.zombies_bucket_name,
-        DATAFLOW_TEMPLATE_PATH = "templates",
-        DATAFLOW_TEMPLATE_NAME = "zombies_on_steroids_df_pipeline",
-        DATAFLOW_SA = var.zombies_sa,
-        ZOMBIES_OPTIMISATION = var.zombies_optimisation,
+        ZOMBIES_SQL_CONDITION = var.zombies_sql_condition,
+        ZOMBIES_FEED_LABEL_INDEX = var.zombies_feed_label_index,
     }
 
     # Get the source code of the cloud function as a Zip compression
