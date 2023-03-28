@@ -27,8 +27,6 @@ fi
 # Activate virtual environment.
 source ${VIRTUALENV_PATH}/bin/activate
 
-echo $1
-echo $2
 # Install dependencies.
 pip install -r "./src/bq_transfers/requirements.txt"
 
@@ -40,19 +38,24 @@ declare -a ACCOUNTS
 
 find_config_value()
 {
+
+  
   NAME=$1
 
   FILE="./variables.tf"
   LINE_NO=$(grep -n "$NAME" "$FILE" | sed "s/:.*//")
 
+  #echo "$LINE_NO"
+
   I=0
   LINE=""
   NOT_FOUND=1
-  while [ $NOT_FOUND -eq 1 ]
+  
+  while [ "$NOT_FOUND" -eq 1 ]
   do
-    read LINE
+    read -r LINE
     I=$(( I + 1 ))
-    if [[ ("$LINE" == *"default"* )  && ($I -gt $LINE_NO) ]]; then
+    if [[ ("$LINE" == *"default"*)  && ($I -gt $LINE_NO) ]]; then
       RESULT=$(echo "$LINE" | cut -d '=' -f2 | sed -e 's/^[[:space:]]*//' | sed -e 's/"//g')
       NOT_FOUND=0
     fi;
@@ -94,21 +97,23 @@ find_accounts_values(){
 
 deploy_data_transfers(){
 
-  GCP_PROJECT=$(find_config_value "variable gcp_project")
-  MERCHANT_AND_GADS_DATASET_NAME=$(find_config_value "variable merchant_and_gads_dataset_name")
-  ZOMBIES_DATA_LOCATION=$(find_config_value "variable zombies_data_location")
-  MERCHANT_AND_GADS_SCHEDULE=$(find_config_value "variable merchant_and_gads_schedule")
-  SERVICE_ACCOUNT=$(find_config_value "variable zombies_sa")
+  GCP_PROJECT=$(find_config_value "variable \"gcp_project\"")
+  MERCHANT_DATASET_NAME=$(find_config_value "variable \"merchant_dataset_name\"")
+  GADS_DATASET_NAME=$(find_config_value "variable \"gads_dataset_name\"")
+  ZOMBIES_DATA_LOCATION=$(find_config_value "variable \"zombies_data_location\"")
+  SERVICE_ACCOUNT=$(find_config_value "variable \"zombies_sa\"")
   SERVICE_ACCOUNT="$SERVICE_ACCOUNT""@""$GCP_PROJECT"".iam.gserviceaccount.com"
-  SCHEDULE=$(find_config_value "variable merchant_and_gads_schedule")
+  MERCHANT_SCHEDULE=$(find_config_value "variable \"merchant_schedule\"")
+  GADS_SCHEDULE=$(find_config_value "variable \"gads_schedule\"")
 
-  find_accounts_values "variable accounts_table"
+  find_accounts_values "variable \"accounts_table\""
    
-  echo "Checking Dataset status..."
-  terraform import google_bigquery_dataset.merchant_and_gads_dataset "$MERCHANT_AND_GADS_DATASET_NAME"
-  echo "Creating Dataset if applicable..."
-  terraform apply -target=google_bigquery_dataset.merchant_and_gads_dataset
+  echo "Checking Datasets status..."
 
+  terraform import google_bigquery_dataset.merchant_dataset[0] "$MERCHANT_DATASET_NAME" || echo >&2 "Ignoring import failure"
+  terraform import google_bigquery_dataset.gads_dataset[0] "$GADS_DATASET_NAME" || echo >&2 "Ignoring import failure"
+  terraform apply -target=google_bigquery_dataset.merchant_dataset -target=google_bigquery_dataset.gads_dataset
+  
   for I in ${ACCOUNTS[@]}
   do
     MC=$(echo "$I" | cut -d ',' -f1)
@@ -119,17 +124,22 @@ deploy_data_transfers(){
     python ./src/bq_transfers/data_transfers.py \
       --requirements_file ./src/bq_transfers/requirements.txt \
       --project_id "$GCP_PROJECT" \
-      --dataset_id "$MERCHANT_AND_GADS_DATASET_NAME" \
+      --merchant_dataset_id "$MERCHANT_DATASET_NAME" \
+      --gads_dataset_id "$GADS_DATASET_NAME" \
       --dataset_location "$ZOMBIES_DATA_LOCATION" \
       --gads_account_id "$GADS" \
       --merchant_account_id "$MC" \
       --service_account "$SERVICE_ACCOUNT" \
-      --schedule "$SCHEDULE"
+      --merchant_schedule "$MERCHANT_SCHEDULE" \
+      --gads_schedule "$GADS_SCHEDULE"
 
   done;
 }
 
-CREATE_MERCHANT_AND_GADS_TRANSFERS=$(find_config_value "variable create_merchant_and_gads_transfers")
+CREATE_MERCHANT_AND_GADS_TRANSFERS=$(find_config_value "variable \"create_merchant_and_gads_transfers\"")
+
+
+echo "$CREATE_MERCHANT_AND_GADS_TRANSFERS"
 
 if [[ "$CREATE_MERCHANT_AND_GADS_TRANSFERS" == "true" ]]; then
   echo "Creating BQ Data Transfer for Merchant and GAds..."

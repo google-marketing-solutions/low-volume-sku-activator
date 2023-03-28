@@ -49,7 +49,7 @@ def trigger_job(event, context):
 
     zombies_bucket = _get_zombies_bucket(mc_id, gads_id,
                                          ACCOUNTS_CONFIG)
-    gcs_destination = f'{zombies_bucket}/zombies_feed_{mc_id}_{gads_id}_*.csv'
+    gcs_destination = f'{zombies_bucket}/zombies_feed_{mc_id}_{gads_id}_*.txt'
 
     query = f"""
       EXPORT DATA OPTIONS(
@@ -57,7 +57,7 @@ def trigger_job(event, context):
         format='CSV',
         overwrite=true,
         header=true,
-        field_delimiter=',')
+        field_delimiter='\t')
       AS
         SELECT DISTINCT * FROM (
           SELECT offer_id, item_group_id, 'zombie' as custom_label_{ZOMBIES_FEED_LABEL_INDEX}

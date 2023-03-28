@@ -364,8 +364,13 @@ def _get_args_parser():
       help='GCP Project.',
       default=None,
       required=True)
-    parser.add_argument('--dataset_id',
-      help='BigQuery dataset id.',
+    parser.add_argument('--merchant_dataset_id',
+      help='Merchant BigQuery dataset id.',
+      default=None,
+      required=True)
+
+    parser.add_argument('--gads_dataset_id',
+      help='GAds BigQuery dataset id.',
       default=None,
       required=True)
 
@@ -389,8 +394,13 @@ def _get_args_parser():
       default=None,
       required=True)
 
-    parser.add_argument('--schedule',
-      help='Schedule config.',
+    parser.add_argument('--merchant_schedule',
+      help='Merchant Schedule config.',
+      default=None,
+      required=True)
+
+    parser.add_argument('--gads_schedule',
+      help='GAds Schedule config.',
       default=None,
       required=True)
     
@@ -402,16 +412,15 @@ def main(argv = None):
     data_transfer = CloudDataTransferUtils(args.project_id)
     merchant_center_config = data_transfer.create_merchant_center_transfer(
         args.merchant_account_id,
-        args.dataset_id,
+        args.merchant_dataset_id,
         args.dataset_location.lower(),
         args.service_account,
-        args.schedule)
+        args.merchant_schedule)
     ads_config = data_transfer.create_google_ads_transfer(args.gads_account_id,
-                                                            args.dataset_id,
+                                                            args.gads_dataset_id,
                                                             args.dataset_location.lower(),
                                                             args.service_account,
-                                                            args.schedule)
-
+                                                            args.gads_schedule)
     try:
         logging.info('Checking the GMC data transfer status.')
         #data_transfer.wait_for_transfer_completion(merchant_center_config, args.dataset_location)

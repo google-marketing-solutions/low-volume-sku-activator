@@ -46,15 +46,27 @@ variable "create_merchant_and_gads_transfers" {
   default     = true
 }
 
-variable "merchant_and_gads_dataset_name" {
+variable "merchant_dataset_name" {
   type        = string
-  description = "The name of the dataset to store the results"
-  default     = "merchant-gads-dataser"
+  description = "The name of the dataset to store the Merchant results"
+  default     = "merchant-dataset"
 }
 
-variable "merchant_and_gads_schedule" {
+variable "gads_dataset_name" {
   type        = string
-  description = "Schedule for the scheduled data transfers"
+  description = "The name of the dataset to store the GAds results"
+  default     = "gads-dataset"
+}
+
+variable "merchant_schedule" {
+  type        = string
+  description = "Schedule for the Merchant scheduled data transfers"
+  default     = "every day 00:00"
+}
+
+variable "gads_schedule" {
+  type        = string
+  description = "Schedule for the GAds scheduled data transfers"
   default     = "every day 00:00"
 }
 
