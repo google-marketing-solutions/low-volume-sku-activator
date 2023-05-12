@@ -57,7 +57,7 @@ Roles that will be automatically  granted to the service account during the inst
 - Clone this repository onto your local machine
 by running ```git clone http://github.com/google/low_volume_skus_activator.```
 - Navigate to the project folder ```cd low_volume_skus_activator/```
-- Make sure you edit the ```variables.tf``` file with all the relevant values.
+- Make sure you edit the ```variables.tf``` file with all the relevant values, refer to the [Updating variables.tf](#updating-variables.tf) section.
 - Set the environment variable GOOGLE_APPLICATION_CREDENTIALS (either to service account key file or your user key file after gcloud auth application-default login)
 - Open a shell, go to the root directory of the downloaded code, execute “chmod 755 install.sh”
 - Now execute “./install.sh”
@@ -181,6 +181,35 @@ SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_ind
           _TABLE_SUFFIX = {run_date}
           AND group_impressions < impressions_threshold
 ```
+
+## Updating variables.tf
+
+|Fied Name|Mandatory update|Comment
+|:----|:----|:----
+|gcs|YES | udpate "bucket" parameter
+|credentials_path|YES|
+|gcp_project|YES|
+|gcp_region|NO|default is EU
+|gcp_merchant_and_gads_dataset_project|YES|
+|create_merchant_and_gads_transfers|NO|Default is true
+|merchant_dataset_name|NO|
+|gads_dataset_name|NO|
+|merchant_schedule|NO|
+|gads_schedule|NO|
+|zombies_bucket_name|YES|GCS name must be unique
+|zombies_bucket_location|NO|default is EU
+|zombies_sa|NO|
+|zombies_data_location|NO|default is EU
+|zombies_dataset_name|NO|
+|zombies_schedule|NO|
+|zombies_pubsub_topic|NO|
+|zombies_sql_condition|NO| but check default value ...
+|zombies_deciles|NO| but check default value ...
+|zombies_impressions_decil|NO| but check default value ...
+|zombies_clicks_decil|NO| but check default value ...
+|generate_feed_files|NO| Default is true
+|zombies_feed_label_index|YES| The value set might be alreadt taken
+|accounts_table|YES|
 
 ## Author
 
