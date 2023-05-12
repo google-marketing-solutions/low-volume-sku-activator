@@ -1,6 +1,6 @@
-# Zombies on Steroïds
+# Low volume SKUS activator
 
-Zombies on Steroids is a solution that aims to pull out the least viewed
+Low volume SKUS activator is a solution that aims to pull out the least viewed
 products on Google Shopping in order to drive them in a separate Google Ads
 campaign.
 
@@ -14,7 +14,7 @@ attention they deserve.
 
 ## Important Note
 
-Majority of the installation script is based in Terraform and will try to create all the artefacts specified in the configuration: GCS buckets, Cloud Functions, BigQuery Datasets…if they exist you may want to import the status into Terraform prior execution.
+Majority of the installation script is based in Terraform and will try to create all the artefacts specified in the configuration: GCS buckets, Cloud Functions, BigQuery Datasets… if they exist you may want to import the status into Terraform prior execution.
 
 Regarding Merchant data transfers, if this is the first time a Merchant transfer is created, it might fail during the first 24-72 hours, which is the time it takes for Merchant reporting generation process to be set up
 
@@ -55,8 +55,8 @@ Roles that will be automatically  granted to the service account during the inst
 ## How to deploy
 
 - Clone this repository onto your local machine
-by running ```git clone http://github.com/google/zombies-on-steroids.```
-- Navigate to the project folder ```cd zombies_on_steroids/```
+by running ```git clone http://github.com/google/low_volume_skus_activator.```
+- Navigate to the project folder ```cd low_volume_skus_activator/```
 - Make sure you edit the ```variables.tf``` file with all the relevant values.
 - Set the environment variable GOOGLE_APPLICATION_CREDENTIALS (either to service account key file or your user key file after gcloud auth application-default login)
 - Open a shell, go to the root directory of the downloaded code, execute “chmod 755 install.sh”
@@ -76,7 +76,7 @@ by running ```git clone http://github.com/google/zombies-on-steroids.```
     BigQuery Data Transfer for each GAds account with the name GAds_Transfer_{gads_id}
     BigQuery Data Transfer for each Merchant account Merchant_Transfer_{mc_id}
 
-    IMPORTANT NOTE: if this is the first time the Merchant transfer is created, it might fail during the first 24-72 hours, which is the time it takes for Merchant reporting generation process to be set up
+**IMPORTANT NOTE: if this is the first time the Merchant transfer is created, it might fail during the first 24-72 hours, which is the time it takes for Merchant reporting generation process to be set up**
 
 - If the config variable generate_feed_files is set to “true”, the following artefacts will be generated:
 
@@ -114,7 +114,7 @@ zombies_feed_<MC_ACCOUNT_ID>-<GADS_ACCOUNT_ID>.csv
 
 The fields in the CSV files are:
 
-offer_id, item_group_id, custom_label_{zombies_feed_label_index}
+offer_id, item_group_id, custom_label_{zombies_feed_label_index} in TSV format.
 
 ## How to activate
 

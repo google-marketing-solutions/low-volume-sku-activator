@@ -138,6 +138,7 @@ deploy_data_transfers(){
 
 CREATE_MERCHANT_AND_GADS_TRANSFERS=$(find_config_value "variable \"create_merchant_and_gads_transfers\"")
 
+terraform init -upgrade
 
 echo "$CREATE_MERCHANT_AND_GADS_TRANSFERS"
 

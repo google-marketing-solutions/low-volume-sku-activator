@@ -49,13 +49,13 @@ variable "create_merchant_and_gads_transfers" {
 variable "merchant_dataset_name" {
   type        = string
   description = "The name of the dataset to store the Merchant results"
-  default     = "merchant-dataset"
+  default     = "merchant_reports"
 }
 
 variable "gads_dataset_name" {
   type        = string
   description = "The name of the dataset to store the GAds results"
-  default     = "gads-dataset"
+  default     = "gads_reports"
 }
 
 variable "merchant_schedule" {
@@ -72,8 +72,8 @@ variable "gads_schedule" {
 
 variable "zombies_bucket_name" {
   type        = string
-  description = "Google Cloud Region"
-  default     = "zombies-on-steroids-bucket"
+  description = "Bucket for the Cloud function"
+  default     = "zombies-bucket"
 }
 
 variable "zombies_bucket_location" {
@@ -96,7 +96,7 @@ variable "zombies_data_location" {
 
 variable "zombies_dataset_name" {
   type        = string
-  description = "The name of the dataset to store the results"
+  description = "The name of the dataset to store the zombies insights"
   default     = "zombies"
 }
 
@@ -155,7 +155,7 @@ variable "accounts_table" {
     gcs_url = string
   }))
   default = {
-    #"1" = { "mc": "111111111", "gads": "222222222", "gcs_url": "gs://zombies-on-steroids-bucket"},
-    #"2" = { "mc": "3333333333", "gads": "444444444", "gcs_url": "gs://zombies-on-steroids-bucket"}
+    # "1" = { "mc": "111111111", "gads": "222222222", "gcs_url": "gs://zombies-on-steroids-bucket"},
+    # "2" = { "mc": "3333333333", "gads": "444444444", "gcs_url": "gs://zombies-on-steroids-bucket"}
   }
 }
