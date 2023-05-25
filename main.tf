@@ -161,3 +161,13 @@ resource "google_pubsub_topic" "zombies_bq_sq_completed_topic" {
   depends_on    = [google_project_service.enable_pubsub]
   name = var.zombies_pubsub_topic
 }
+
+resource "google_storage_bucket" "zombies_bucket" {
+  project = data.google_project.project.project_id
+  name          = var.zombies_bucket_name
+  location      = var.zombies_bucket_location
+  force_destroy = false
+  uniform_bucket_level_access = true
+  depends_on    = [google_service_account.service_account,
+                   google_project_service.enable_cloudfunctions]  
+}

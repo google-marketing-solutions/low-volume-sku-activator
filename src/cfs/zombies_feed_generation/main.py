@@ -21,8 +21,8 @@ from google.api_core import datetime_helpers
 from google.cloud import bigquery
 
 def trigger_job(event, context):
-    """Background Cloud Function to be triggered by Cloud Storage.
-       This generic function logs relevant data when a file is changed.
+    """Cloud Function to be triggered by PubSub after BigQuery Scheduled Query completion.
+       This function generates the low volume sku suplemental feed using SQL.
     Args:
         event (dict):  The dictionary with data specific to this type of event.
                        The `data` field contains a description of the event in
