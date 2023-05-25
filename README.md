@@ -89,7 +89,7 @@ by running ```git clone http://github.com/google/zombies-on-steroids.```
 ### Ouput Table
 
 For every (mcc, gads) account pair, one sharded (YYYYMMDD) table will be generated with the following naming convention:
-{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*
+{gcp_project}.{zombies_dataset_name}.LowVolumeSkus_{mcc_id}_{gads_id}_*
 
 The table fields are described below:
 
@@ -148,7 +148,7 @@ Here are several use cases to activate, for example:
 
 ```sql
 SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
-        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        FROM `{gcp_project}.{zombies_dataset_name}.LowVolumeSkus_{mcc_id}_{gads_id}_*`
         WHERE
           _TABLE_SUFFIX = {run_date}
           AND clicks = 0 AND impressions > 0
@@ -158,7 +158,7 @@ SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_ind
 
 ```sql
 SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
-        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        FROM `{gcp_project}.{zombies_dataset_name}.LowVolumeSkus_{mcc_id}_{gads_id}_*`
         WHERE
           _TABLE_SUFFIX = {run_date}
           AND clicks < avg_group_clicks
@@ -168,7 +168,7 @@ SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_ind
 
 ```sql
 SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
-        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        FROM `{gcp_project}.{zombies_dataset_name}.LowVolumeSkus_{mcc_id}_{gads_id}_*`
         WHERE
           _TABLE_SUFFIX = {run_date}
           AND impressions = 0
@@ -178,7 +178,7 @@ SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_ind
 
 ```sql
 SELECT offer_id, item_group_id, 'zombie' as custom_label_{zombies_feed_label_index}
-        FROM `{gcp_project}.{zombies_dataset_name}.ZombieProducts_{mcc_id}_{gads_id}_*`
+        FROM `{gcp_project}.{zombies_dataset_name}.LowVolumeSkus_{mcc_id}_{gads_id}_*`
         WHERE
           _TABLE_SUFFIX = {run_date}
           AND group_impressions < impressions_threshold

@@ -21,11 +21,7 @@ resource "google_bigquery_job" "adgroup_criteria_view" {
 
   for_each = { for pair in var.accounts_table : pair.mc => pair }
 
-  job_id = "adgroup_criteria_view_${each.value.gads}"
-
-  labels = {
-    "example-label" ="adgroup_criteria_view_${each.value.gads}"
-  }
+  job_id = "adgroup_criteria_view_${each.value.gads}_${random_id.id.hex}"
 
   query {
     query = <<EOF
