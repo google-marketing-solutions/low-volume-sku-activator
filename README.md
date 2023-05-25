@@ -22,6 +22,8 @@ If deploying the GAds and Merchant Bigquery Data Transfers, the Cloud user execu
 
 Since GAds and Merchant Data Transfers cannot be created using Terraform due to the authorization code, the resource status is not currently saved. Bear in mind that multiple runs of the script may end up duplicating the Data Transfers.
 
+If the script fails when you run it for the first time, it might be due to delay in preparing Merchant account data. Please wait up to 1-3 days before re-running the script.
+
 ## Prerequisite
 
 Google cloud user with privileges over all the APIs listed in the config (ideally Owner role), so it’s possible to grant some privileges to the Service Account automatically.
