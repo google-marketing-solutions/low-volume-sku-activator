@@ -1,4 +1,4 @@
-# Copyright 2020 Google LLC..
+# Copyright 2023 Google LLC..
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,33 +13,13 @@
 # limitations under the License.
 
 #!/bin/bash
-# Zombies setup script.
+# Low volume SKU setup script 1/2 - Google BQ Transfers.
 
-set -e
 
-VIRTUALENV_PATH=$HOME/"zombies-venv"
-
-# Create virtual environment with python3
-if [[ ! -d "${VIRTUALENV_PATH}" ]]; then
-  virtualenv -p python3 "${VIRTUALENV_PATH}"
-fi
-
-# Activate virtual environment.
-source ${VIRTUALENV_PATH}/bin/activate
-
-# Install dependencies.
-pip install -r "./src/bq_transfers/requirements.txt"
-
-# Setup cloud environment.
-PYTHONPATH=src/plugins:$PYTHONPATH
-export PYTHONPATH
-
-declare -a ACCOUNTS
+source ./common.sh
 
 find_config_value()
 {
-
-  
   NAME=$1
 
   FILE="./variables.tf"
@@ -64,7 +44,6 @@ find_config_value()
 
   echo "$RESULT"
 }
-
 
 find_accounts_values(){
 
@@ -95,6 +74,7 @@ find_accounts_values(){
 
 }
 
+
 deploy_data_transfers(){
 
   GCP_PROJECT=$(find_config_value "variable \"gcp_project\"")
@@ -113,7 +93,7 @@ deploy_data_transfers(){
   terraform import google_bigquery_dataset.merchant_dataset[0] "$MERCHANT_DATASET_NAME" || echo >&2 "Ignoring import failure"
   terraform import google_bigquery_dataset.gads_dataset[0] "$GADS_DATASET_NAME" || echo >&2 "Ignoring import failure"
   terraform apply -target=google_bigquery_dataset.merchant_dataset -target=google_bigquery_dataset.gads_dataset
-  
+
   for I in ${ACCOUNTS[@]}
   do
     MC=$(echo "$I" | cut -d ',' -f1)
@@ -136,15 +116,21 @@ deploy_data_transfers(){
   done;
 }
 
-CREATE_MERCHANT_AND_GADS_TRANSFERS=$(find_config_value "variable \"create_merchant_and_gads_transfers\"")
-
 terraform init -upgrade
 
-echo "$CREATE_MERCHANT_AND_GADS_TRANSFERS"
+CREATE_MERCHANT_AND_GADS_TRANSFERS=$(find_config_value "variable \"create_merchant_and_gads_transfers\"")
+
+echo "$GCP_PROJECT"
 
 if [[ "$CREATE_MERCHANT_AND_GADS_TRANSFERS" == "true" ]]; then
   echo "Creating BQ Data Transfer for Merchant and GAds..."
   deploy_data_transfers
+  echo "Done !"
+  echo "  
+  ********************** IMPORTANT: Please read **********************
+  *                                                                  *
+  * Transfers can take up to 3 days to be created, please check that *
+  * reports are available before running the deploy.sh script        *
+  ********************************************************************
+  "                                                                                                                                                
 fi;
-
-terraform apply --parallelism=1

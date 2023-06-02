@@ -60,9 +60,11 @@ Roles that will be automatically  granted to the service account during the inst
 by running ```git clone http://github.com/google/low_volume_skus_activator.```
 - Navigate to the project folder ```cd low_volume_skus_activator/```
 - Make sure you edit the ```variables.tf``` file with all the relevant values, refer to the [Updating variables.tf](#updating-variables.tf) section.
-- Set the environment variable GOOGLE_APPLICATION_CREDENTIALS (either to service account key file or your user key file after gcloud auth application-default login)
-- Open a shell, go to the root directory of the downloaded code, execute “chmod 755 install.sh”
-- Now execute “./install.sh”
+- Open a shell, go to the root directory of the downloaded code, execute “chmod 755 create_transfers.sh deploy.sh”
+- First execute “./create_transfers.sh”
+- STOP HERE: Once BQ transfers are created it can take up to 3 days to see the reports in BQ. Don't go to next 
+    steps until you can see the reports in BigQuery (in the datasets you sepecified in ```variables.tf```
+- Once the reports have been imported, execute "./deploy.sh"
 - Type “yes” and hit return every time the system asks for confirmation (2 times maximum)
 
 ## Generated Cloud Artefacts
