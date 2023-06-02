@@ -17,8 +17,8 @@
 data "archive_file" "source" {
     count = var.generate_feed_files ? 1 : 0
     type        = "zip"
-    source_dir  = "src/cfs/zombies_feed_generation"
-    output_path = "/tmp/zombies_feed_generation.zip"
+    source_dir  = "src/cfs/low_volume_skus_feed_generation"
+    output_path = "/tmp/low_volume_skus_feed_generation.zip"
     depends_on   = []
 }
 
@@ -49,7 +49,7 @@ resource "google_cloudfunctions_function" "function" {
         google_project_service.enable_cloudbuild,
         google_storage_bucket.zombies_bucket       
     ]
-    name                  = "zombies_feed_generation"
+    name                  = "low_volume_skus_feed_generation"
     runtime               = "python38"
 
     environment_variables = {

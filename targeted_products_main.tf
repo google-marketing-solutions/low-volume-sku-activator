@@ -16,6 +16,10 @@
 # The view parse the adgroup criteria into multiple columns that will used to join with the GMC data
 # to find the targeted products.
 
+resource "random_id" "id" {
+  byte_length = 8
+}
+
 resource "google_storage_bucket_object" "geo_targets_file" {
   depends_on = [google_bigquery_dataset.zombies_dataset,
                 google_storage_bucket.zombies_bucket
@@ -26,7 +30,8 @@ resource "google_storage_bucket_object" "geo_targets_file" {
 }
 
 resource "google_bigquery_table" "geo_targets_table" {
-  depends_on = [google_storage_bucket_object.geo_targets_file
+  depends_on = [random_id.id, 
+                google_storage_bucket_object.geo_targets_file
   ]
   dataset_id = google_bigquery_dataset.zombies_dataset.dataset_id
   table_id   = "geo_targets"

@@ -21,11 +21,7 @@ resource "google_bigquery_job" "pmax_criteria_view" {
 
   for_each = { for pair in var.accounts_table : pair.mc => pair }
 
-  job_id = "pmax_criteria_view_${each.value.gads}"
-
-  labels = {
-    "example-label" ="pmax_criteria_view_${each.value.gads}"
-  }
+  job_id = "pmax_criteria_view_${each.value.gads}_${random_id.id.hex}"
 
   query {
     query = <<EOF

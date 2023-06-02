@@ -38,10 +38,10 @@ def trigger_job(event, context):
     ACCOUNTS_CONFIG = json.loads(os.environ.get('ACCOUNTS_CONFIG'))
     ZOMBIES_SQL_CONDITION = os.environ.get('ZOMBIES_SQL_CONDITION')
     ZOMBIES_FEED_LABEL_INDEX = os.environ.get('ZOMBIES_FEED_LABEL_INDEX')
-    
+
     data = base64.b64decode(event['data']).decode('utf-8')
     msg = json.loads(data)
-    
+
     accounts_id = msg['params']['destination_table_name_template'].split('_')
     mc_id = accounts_id[1]
     gads_id = accounts_id[2]
@@ -49,7 +49,7 @@ def trigger_job(event, context):
 
     zombies_bucket = _get_zombies_bucket(mc_id, gads_id,
                                          ACCOUNTS_CONFIG)
-    gcs_destination = f'{zombies_bucket}/zombies_feed_{mc_id}_{gads_id}_*.txt'
+    gcs_destination = f'{zombies_bucket}/low_volume_skus_{mc_id}_{gads_id}_*.txt'
 
     query = f"""
       EXPORT DATA OPTIONS(
@@ -60,8 +60,8 @@ def trigger_job(event, context):
         field_delimiter='\t')
       AS
         SELECT DISTINCT * FROM (
-          SELECT offer_id, item_group_id, 'zombie' as custom_label_{ZOMBIES_FEED_LABEL_INDEX}
-          FROM `{GCP_PROJECT}.{ZOMBIES_DATASET_NAME}.ZombieProducts_{mc_id}_{gads_id}_{run_date}`
+          SELECT offer_id, item_group_id, country, 'low_volume_sku' as custom_label_{ZOMBIES_FEED_LABEL_INDEX}
+          FROM `{GCP_PROJECT}.{ZOMBIES_DATASET_NAME}.LowVolumeSkus_{mc_id}_{gads_id}_{run_date}`
           WHERE        
             {ZOMBIES_SQL_CONDITION}
         )

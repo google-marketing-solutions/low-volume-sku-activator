@@ -21,11 +21,7 @@ resource "google_bigquery_job" "product_view" {
 
   for_each = { for pair in var.accounts_table : pair.mc => pair }
 
-  job_id     = "product_view_${each.value.mc}"
-
-  labels = {
-    "example-label" ="product_view_${each.value.mc}"
-  }
+  job_id     = "product_view_${each.value.mc}_${random_id.id.hex}"
 
   query {
     query = <<EOF
