@@ -45,6 +45,19 @@ resource "null_resource" "generate_feed_files" {
   depends_on    = [google_service_account.service_account]
 }
 
+resource "google_project_service" "enable_bigquery" {
+  project = var.gcp_project
+  service = "bigquery.googleapis.com"
+
+  timeouts {
+    create = "30m"
+    update = "40m"
+  }
+
+  disable_dependent_services = true
+  depends_on    = [google_service_account.service_account]
+}
+
 resource "google_project_service" "enable_cloudbuild" {
   project = var.gcp_project
   service = "cloudbuild.googleapis.com"

@@ -90,9 +90,11 @@ deploy_data_transfers(){
    
   echo "Checking Datasets status..."
 
+  terraform apply -target=google_project_service.enable_bigquery -target=google_project_service.enable_bqdt -target=google_bigquery_dataset.merchant_dataset -target=google_bigquery_dataset.gads_dataset
+  
   terraform import google_bigquery_dataset.merchant_dataset[0] "$MERCHANT_DATASET_NAME" || echo >&2 "Ignoring import failure"
   terraform import google_bigquery_dataset.gads_dataset[0] "$GADS_DATASET_NAME" || echo >&2 "Ignoring import failure"
-  terraform apply -target=google_bigquery_dataset.merchant_dataset -target=google_bigquery_dataset.gads_dataset
+  
 
   for I in ${ACCOUNTS[@]}
   do
