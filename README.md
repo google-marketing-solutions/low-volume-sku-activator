@@ -30,6 +30,7 @@ Google cloud user with privileges over all the APIs listed in the config (ideall
 
 - Latest version of Terraform installed
 - Python version >= 3.8.1 installed
+- PiP installed
 - Python Virtualenv installed
 - List of Merchant - GAds account pairs ready (which GAds account is linked to which Merchant account)
 
@@ -60,6 +61,9 @@ Roles that will be automatically  granted to the service account during the inst
 by running ```git clone http://github.com/google/low_volume_skus_activator.```
 - Navigate to the project folder ```cd low_volume_skus_activator/```
 - Make sure you edit the ```variables.tf``` file with all the relevant values, refer to the [Updating variables.tf](#updating-variables.tf) section.
+- Set cloud project: ```gcloud config set project <my-project>```
+- Login with your credentials: ```gcloud auth application-default login```
+- Set the environment variable GOOGLE_APPLICATION_CREDENTIALS to the generated user key file after running the command above. It says something similar to Credentials saved to file: [/usr/local/xxx/home/xxxx/.config/gcloud/application_default_credentials.json]. An example of the export command would be: export ```GOOGLE_APPLICATION_CREDENTIALS=/usr/local/xxx/home/xxxx/.config/gcloud/application_default_credentials.json```
 - Open a shell, go to the root directory of the downloaded code, execute “chmod 755 create_transfers.sh deploy.sh”
 - First execute “./create_transfers.sh”
 - STOP HERE: Once BQ transfers are created it can take up to 3 days to see the reports in BQ. Don't go to next 

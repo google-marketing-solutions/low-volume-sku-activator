@@ -17,21 +17,22 @@
 
 set -e
 
+VIRTUALENV_PATH=$(pwd)
+VIRTUALENV_PATH="$VIRTUALENV_PATH/zombies-venv"
+export VIRTUALENV_PATH
 PATH=$PATH:/usr/local/bin
-VIRTUALENV_PATH=$HOME/"zombies-venv"
+export PATH
 
 # Create virtual environment with python3
-python -m ensurepip --default-pip
-if [[ ! -d "${VIRTUALENV_PATH}" ]]; then
-  virtualenv -p python3 "${VIRTUALENV_PATH}"
+
+if [[ ! -d "$VIRTUALENV_PATH" ]]; then
+  virtualenv -p python3 "$VIRTUALENV_PATH"
 fi
+
 # Activate virtual environment.
 source ${VIRTUALENV_PATH}/bin/activate
-
-
-
-# Install dependencies.
-pip install -r "./src/bq_transfers/requirements.txt"
+S=$($VIRTUALENV_PATH/bin/pip install -r "./src/bq_transfers/requirements.txt")
+echo $S
 
 # Setup cloud environment.
 PYTHONPATH=src/plugins:$PYTHONPATH

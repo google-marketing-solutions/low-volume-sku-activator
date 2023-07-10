@@ -231,10 +231,8 @@ class CloudDataTransferUtils(object):
     logging.info(
         'Creating data transfer for merchant id %s to destination dataset %s',
         merchant_id, destination_dataset)
-    has_valid_credentials = self._check_valid_credentials(_MERCHANT_CENTER_ID)
     authorization_code = None
-    if not has_valid_credentials:
-      authorization_code = self._get_authorization_code(_MERCHANT_CENTER_ID)
+    authorization_code = self._get_authorization_code(_MERCHANT_CENTER_ID)
     parent = self.client.common_location_path(self.project_id, dataset_location)
      # Initialize request argument(s)
     transfer_config = bigquery_datatransfer_v1.TransferConfig()
@@ -295,10 +293,8 @@ class CloudDataTransferUtils(object):
     logging.info(
         'Creating data transfer for Google Ads customer id %s to destination '
         'dataset %s', customer_id, destination_dataset)
-    has_valid_credentials = self._check_valid_credentials(_GOOGLE_ADS_ID)
     authorization_code = None
-    if not has_valid_credentials:
-      authorization_code = self._get_authorization_code(_GOOGLE_ADS_ID)
+    authorization_code = self._get_authorization_code(_GOOGLE_ADS_ID)
     dataset_location = dataset_location
     parent = self.client.common_location_path(self.project_id, dataset_location)
 
