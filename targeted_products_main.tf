@@ -17,6 +17,10 @@
 # to find the targeted products.
 
 resource "random_id" "id" {
+   keepers = {
+    # Generate a new id each time we switch to a new AMI id
+    dummy = "${timestamp()}"
+  }
   byte_length = 8
 }
 
