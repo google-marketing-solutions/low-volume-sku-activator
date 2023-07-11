@@ -281,6 +281,7 @@ class CloudDataTransferUtils(object):
 
     parameters = struct_pb2.Struct()
     parameters['customer_id'] = customer_id
+    parameters['include_pmax'] = True
     data_transfer_config = self._get_existing_transfer(_GOOGLE_ADS_ID,
                                                        destination_dataset,
                                                        dataset_location,

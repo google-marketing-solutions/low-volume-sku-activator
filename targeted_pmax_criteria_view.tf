@@ -23,7 +23,11 @@ resource "google_bigquery_job" "pmax_criteria_view" {
 
   job_id = "pmax_criteria_view_${each.value.gads}_${random_id.id.hex}"
 
+  location = var.zombies_data_location
+
   query {
+    create_disposition = ""
+    write_disposition = ""
     query = <<EOF
         # Copyright 2023 Google LLC
         #
@@ -136,7 +140,7 @@ resource "google_bigquery_job" "pmax_criteria_view" {
                 TRIM(LOWER(asset_group_listing_group_filter_case_value_product_brand_value)) AS brand,
                 TRIM(LOWER(asset_group_listing_group_filter_case_value_product_item_id_value)) AS offer_id
             FROM
-                `${var.gcp_merchant_and_gads_dataset_project}.ads_AssetGroupListingGroupFilter_${each.value.gads}`
+                `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_AssetGroupListingGroupFilter_${each.value.gads}`
             ),
             # Aggregates the criteria to be used for "Everything else" by grouping the same parent. At this
             # point, we only know the sibling (same parent), not the grandparent criteria.
@@ -183,7 +187,7 @@ resource "google_bigquery_job" "pmax_criteria_view" {
                 CAST(asset_group_id AS INT64) AS asset_group_id,
                 CAST(SPLIT(asset_group_campaign, '/')[OFFSET(3)] AS INT64) AS campaign_id
             FROM
-                `${var.gcp_merchant_and_gads_dataset_project}.ads_AssetGroup_${each.value.gads}`
+                `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_AssetGroup_${each.value.gads}`
             WHERE
                 asset_group_status = 'ENABLED'
             ),
@@ -194,7 +198,7 @@ resource "google_bigquery_job" "pmax_criteria_view" {
                 _LATEST_DATE,
                 campaign_id
             FROM
-                `${var.gcp_merchant_and_gads_dataset_project}.ads_Campaign_${each.value.gads}`
+                `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_Campaign_${each.value.gads}`
             WHERE
                 campaign_status = 'ENABLED'
             ),
@@ -205,17 +209,17 @@ resource "google_bigquery_job" "pmax_criteria_view" {
                 ShoppingProductStats.segments_product_merchant_id AS merchant_id,
                 GeoTargets.country_code AS target_country
             FROM
-                `${var.gcp_merchant_and_gads_dataset_project}.ads_ShoppingProductStats_${each.value.gads}`
+                `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}`
                 AS ShoppingProductStats
             INNER JOIN
                 `${var.gcp_project}.${var.zombies_dataset_name}.geo_targets` AS GeoTargets
                 ON
-                CAST(
+                (
                     SPLIT(
                     ShoppingProductStats.segments_product_country,
                     '/')[
                     SAFE_OFFSET(1)]
-                    AS INT64)
+                    )
                 = GeoTargets.parent_id
             ),
             # Get the active criteria only.

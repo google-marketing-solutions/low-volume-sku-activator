@@ -24,7 +24,11 @@ resource "google_bigquery_job" "criteria_view" {
 
   job_id = "criteria_view_${each.value.gads}_${random_id.id.hex}"
 
+  location = var.zombies_data_location
+
   query {
+    create_disposition = ""
+    write_disposition = ""
     query = <<EOF
         # Copyright 2023 Google LLC
         #

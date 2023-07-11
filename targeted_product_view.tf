@@ -23,7 +23,11 @@ resource "google_bigquery_job" "product_view" {
 
   job_id     = "product_view_${each.value.mc}_${random_id.id.hex}"
 
+  location = var.zombies_data_location
+
   query {
+    create_disposition = ""
+    write_disposition = ""
     query = <<EOF
         # Copyright 2023 Google LLC
         #

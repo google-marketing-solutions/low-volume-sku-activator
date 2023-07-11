@@ -49,6 +49,8 @@ GROUP BY 1,_TABLE_SUFFIX
 
 Otherwise you will need to compile it manually.
 
+Make sure you remove any ```-``` from the accounts identifiers. 
+
 Roles that will be automatically  granted to the service account during the installation process:
 
 "roles/iam.serviceAccountShortTermTokenMinter"

@@ -26,6 +26,7 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
   schedule                  = var.zombies_schedule
   destination_dataset_id    = google_bigquery_dataset.zombies_dataset.dataset_id
   service_account_name      = google_service_account.service_account.email
+
   notification_pubsub_topic = google_pubsub_topic.zombies_bq_sq_completed_topic.id
   params = {
     destination_table_name_template = "LowVolumeSkus_${each.value.mc}_${each.value.gads}_{run_time|\"%Y%m%d\"}",
@@ -63,16 +64,16 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
           feed_label ),
         offer_ids_with_stats AS (
         SELECT
-          CountryCriteriaId AS country,
-          OfferId AS offer_id,
-          SUM(clicks) AS clicks,
-          SUM(impressions) AS impressions,
+          segments_product_country AS country,
+          segments_product_item_id AS offer_id,
+          SUM(metrics_clicks) AS clicks,
+          SUM(metrics_impressions) AS impressions,
         FROM
-          `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ShoppingProductStats_${each.value.gads}`
+          `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}`
         WHERE
           _DATA_DATE BETWEEN DATE_ADD(@run_date, INTERVAL -31 DAY)
           AND DATE_ADD(@run_date, INTERVAL -1 DAY)
-          AND OfferId IS NOT NULL
+          AND segments_product_item_id IS NOT NULL
         GROUP BY
           offer_id,
           country ),
@@ -207,7 +208,7 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
           AND offer_id IS NOT NULL
           AND zf.item_group_id IS NOT NULL),
       latest_targeted_products AS (
-        SELECT offer_id, target_country as country
+        SELECT product_id as offer_id, target_country as country
         FROM `${var.gcp_project}.${var.zombies_dataset_name}.targeted_products_view_${each.value.gads}`
         WHERE _LATEST_DATE = _DATA_DATE
       )

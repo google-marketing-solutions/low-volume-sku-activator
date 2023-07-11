@@ -23,7 +23,11 @@ resource "google_bigquery_job" "adgroup_criteria_view" {
 
   job_id = "adgroup_criteria_view_${each.value.gads}_${random_id.id.hex}"
 
+  location = var.zombies_data_location
+
   query {
+    create_disposition = ""
+    write_disposition = ""
     query = <<EOF
         # Copyright 2023 Google LLC
         #
@@ -438,12 +442,12 @@ resource "google_bigquery_job" "adgroup_criteria_view" {
             INNER JOIN
                 `${var.gcp_project}.${var.zombies_dataset_name}.geo_targets` AS GeoTargets
                 ON
-                CAST(
+                (
                     SPLIT(
                     ShoppingProductStats.segments_product_country,
                     '/')[
                     SAFE_OFFSET(1)]
-                    AS INT64)
+                )
                 = GeoTargets.parent_id
             )
         SELECT
