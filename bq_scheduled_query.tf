@@ -64,12 +64,22 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
           feed_label ),
         offer_ids_with_stats AS (
         SELECT
-          segments_product_country AS country,
           segments_product_item_id AS offer_id,
           SUM(metrics_clicks) AS clicks,
           SUM(metrics_impressions) AS impressions,
+          GeoTargets.country_code AS country,
         FROM
-          `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}`
+          `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}` AS ShoppingProductStats
+        INNER JOIN
+          `${var.gcp_merchant_and_gads_dataset_project}.${var.zombies_dataset_name}.geo_targets` AS GeoTargets
+          ON
+          (
+              SPLIT(
+              ShoppingProductStats.segments_product_country,
+              '/')[
+              SAFE_OFFSET(1)]
+          )
+          = GeoTargets.parent_id
         WHERE
           _DATA_DATE BETWEEN DATE_ADD(@run_date, INTERVAL -31 DAY)
           AND DATE_ADD(@run_date, INTERVAL -1 DAY)
@@ -180,11 +190,11 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
           LEFT JOIN
             clicks_threshold_by_country ctc
           ON
-            fs.feed_label = ctc.feed_label
+            LOWER(fs.feed_label) = LOWER(ctc.feed_label)
           LEFT JOIN
             impressions_threshold_by_country itc
           ON
-            fs.feed_label = itc.feed_label ) ),
+            LOWER(fs.feed_label) = LOWER(itc.feed_label) ) ),
         zombie_products AS (
         SELECT
           owgs.offer_id,
@@ -204,21 +214,23 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
         RIGHT JOIN
           zombie_families zf
         ON
-          owgs.item_group_id = zf.item_group_id
+          LOWER(owgs.item_group_id) = LOWER(zf.item_group_id)
           AND offer_id IS NOT NULL
           AND zf.item_group_id IS NOT NULL),
       latest_targeted_products AS (
-        SELECT product_id as offer_id, target_country as country
+        SELECT
+          SPLIT(product_id, ':')[ARRAY_LENGTH(SPLIT(product_id, ':')) - 1] as offer_id,
+          target_country as country
         FROM `${var.gcp_project}.${var.zombies_dataset_name}.targeted_products_view_${each.value.gads}`
-        WHERE _LATEST_DATE = _DATA_DATE
+        WHERE _DATA_DATE = (SELECT MAX(_DATA_DATE) FROM `${var.gcp_project}.${var.zombies_dataset_name}.targeted_products_view_${each.value.gads}`)
       )
       SELECT
         zp.*
       FROM
         zombie_products AS zp
       INNER JOIN latest_targeted_products ltp
-        ON zp.offer_id = ltp.offer_id
-        AND zp.country = ltp.country
+          LOWER(zp.offer_id) = LOWER(ltp.offer_id)
+          AND LOWER(zp.country) = LOWER(ltp.country)
     EOF
   }
 }
