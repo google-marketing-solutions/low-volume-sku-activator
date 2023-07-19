@@ -69,7 +69,7 @@ def trigger_job(event, context):
 
     job_config = bigquery.job.QueryJobConfig()
 
-    bigquery.Client(project=GCP_PROJECT).query(query, job_config=job_config);
+    bigquery.Client(project=GCP_PROJECT).query(query, job_config=job_config)
 
 def _get_zombies_bucket(merchant_acc, gads_acc, accounts_config):
   """Extracts the right url for the merchant and gads account pair.

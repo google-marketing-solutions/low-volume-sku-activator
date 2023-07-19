@@ -228,7 +228,7 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
         zp.*
       FROM
         zombie_products AS zp
-      INNER JOIN latest_targeted_products ltp
+      INNER JOIN latest_targeted_products ltp ON
           LOWER(zp.offer_id) = LOWER(ltp.offer_id)
           AND LOWER(zp.country) = LOWER(ltp.country)
     EOF

@@ -63,11 +63,12 @@ resource "google_cloudfunctions_function" "function" {
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.zombies_bucket.name
     source_archive_object = google_storage_bucket_object.zip[0].name
-
+    
     # Must match the function name in the cloud function `main.py` source code
     entry_point           = "trigger_job"
     
-    # 
+    service_account_email = google_service_account.service_account.email
+
     event_trigger {
       event_type = "google.pubsub.topic.publish"
       resource = google_pubsub_topic.zombies_bq_sq_completed_topic.id
