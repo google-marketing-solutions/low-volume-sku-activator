@@ -31,7 +31,7 @@ fi
 
 # Activate virtual environment.
 source ${VIRTUALENV_PATH}/bin/activate
-S=$($VIRTUALENV_PATH/bin/pip install -r "./src/bq_transfers/requirements.txt")
+S=$($VIRTUALENV_PATH/bin/pip install --require-hashes -r "./src/bq_transfers/requirements.txt")
 echo $S
 
 # Setup cloud environment.
