@@ -71,7 +71,7 @@ resource "google_bigquery_data_transfer_config" "low_volume_skus_query" {
         FROM
           `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}` AS ShoppingProductStats
         INNER JOIN
-          `${var.gcp_merchant_and_gads_dataset_project}.${var.zombies_dataset_name}.geo_targets` AS GeoTargets
+          (select distinct parent_id, country_code from `${var.gcp_merchant_and_gads_dataset_project}.${var.zombies_dataset_name}.geo_targets`) AS GeoTargets
           ON
           (
               SPLIT(
