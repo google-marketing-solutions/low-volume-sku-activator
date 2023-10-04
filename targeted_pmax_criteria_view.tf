@@ -212,7 +212,7 @@ resource "google_bigquery_job" "pmax_criteria_view" {
                 `${var.gcp_merchant_and_gads_dataset_project}.${var.gads_dataset_name}.ads_ShoppingProductStats_${each.value.gads}`
                 AS ShoppingProductStats
             INNER JOIN
-                `${var.gcp_project}.${var.zombies_dataset_name}.geo_targets` AS GeoTargets
+                 (select distinct parent_id, country_code from `${var.gcp_project}.${var.zombies_dataset_name}.geo_targets`) AS GeoTargets
                 ON
                 (
                     SPLIT(
