@@ -21,7 +21,7 @@ resource "google_bigquery_job" "product_view" {
 
   for_each = { for pair in var.accounts_table : pair.mc => pair }
 
-  job_id     = "product_view_${each.value.mc}_${random_id.id.hex}"
+  job_id     = "product_view_${each.value.gads}_${each.value.mc}_${random_id.id.hex}"
 
   location = var.zombies_data_location
 
